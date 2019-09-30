@@ -10,15 +10,21 @@ module.exports = {
 
   module: {
     rules: [{
-      test: /\.jsx?$/,
-      loader: "babel-loader",
+      test: /\.js$/,
+      loader: 'babel-loader',
       include: [
-        path.resolve(__dirname, './client/dist')
+        path.resolve(__dirname, './client/src')
       ],
       options: {
         presets: ['react']
       },
-    }]
+    }],
 
+  },
+
+  devServer: {
+    contentBase: path.resolve(__dirname, './client/dist'),
+    compress: true,
+    port: 8000
   }
 };
