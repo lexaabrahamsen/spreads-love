@@ -16,15 +16,7 @@ module.exports = {
         path.resolve(__dirname, './client/src')
       ],
       options: {
-        presets: ['react']
-      },
-    }],
-
-  },
-
-  devServer: {
-    contentBase: path.resolve(__dirname, './client/dist'),
-    compress: true,
-    port: 8000
+        presets: ['@babel/react']      }
+    }]
   }
 };
