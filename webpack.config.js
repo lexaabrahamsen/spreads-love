@@ -1,6 +1,7 @@
 const path = require('path');
 
 module.exports = {
+  // mode: "production",
   entry: "./client/src/index.js",
 
   output: {
@@ -16,7 +17,14 @@ module.exports = {
         path.resolve(__dirname, './client/src')
       ],
       options: {
-        presets: ['@babel/react']      }
-    }]
+        presets: ['@babel/react']
+      },
+    }],
+  },
+
+  devServer: {
+    contentBase: path.resolve(__dirname, './client/dist'),
+    compress: true,
+    port: 8000
   }
 };

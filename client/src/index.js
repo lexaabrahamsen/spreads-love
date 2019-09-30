@@ -1,3 +1,15 @@
-import test from './test.js';
+import React, { Component } from 'react';
+import { render } from 'react-dom';
 
-console.log(test.foo);
+class App extends Component {
+  render() {
+    return <div>Helloo</div>;
+  }
+}
+
+const container = document.getElementById('root');
+
+render(
+  <App />,
+  container
+);
