@@ -17,7 +17,7 @@ module.exports = {
         path.resolve(__dirname, './client/src')
       ],
       options: {
-        presets: ['@babel/react']
+        presets: ['@babel/preset-react']
       },
     }],
   },
