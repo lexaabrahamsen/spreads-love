@@ -41,7 +41,6 @@ class SignupForm extends Component {
       onEmailUpdate,
       onPasswordUpdate,
       onSubmit,
-      history,
     } = this.props;
 
     return (
@@ -70,7 +69,7 @@ class SignupForm extends Component {
             placeholder="Your password" />
           </div>
           <div>
-            <button type="button" onClick={ () => {
+            <button type="button" onClick={ () = {
               onSubmit();
               history.push('/app/user/profile');
             }}>Continue</button>
