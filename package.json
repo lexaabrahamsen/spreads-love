@@ -9,6 +9,7 @@
     "babel-preset-react": "^6.24.1",
     "bable-loader": "0.0.1-security",
     "express": "^4.17.1",
+    "nodemon": "^1.19.3",
     "npm-install-missing": "^0.1.4",
     "react": "^16.10.1",
     "react-dom": "^16.10.1",
@@ -19,7 +20,8 @@
   "scripts": {
     "start": "webpack",
     "start-client": "webpack-dev-server",
-    "build": "babel src -d lib"
+    "build": "babel src -d lib",
+    "start-server": "nodemon server/index.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.6.2",
