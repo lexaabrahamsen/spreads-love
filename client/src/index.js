@@ -7,6 +7,8 @@ import {
     Link
 } from 'react-router-dom';
 
+import { withRouter } from 'react-router';
+
 class SigninForm extends Component {
   render() {
     return (
@@ -21,6 +23,7 @@ class UserProfile extends Component {
     return (
       <div>
         <h2>User Profile</h2>
+        <span>{ user.name }</span>
       </div>
     );
   }
@@ -37,6 +40,8 @@ class SignupForm extends Component {
       onNameUpdate,
       onEmailUpdate,
       onPasswordUpdate,
+      onSubmit,
+      history,
     } = this.props;
 
     return (
@@ -65,12 +70,17 @@ class SignupForm extends Component {
             placeholder="Your password" />
           </div>
           <div>
-            <button type="button">Continue</button>
+            <button type="button" onClick={ () => {
+              onSubmit();
+              history.push('/app/user/profile');
+            }}>Continue</button>
           </div>
         </div>
     );
   }
 }
+
+const SignupFormWithRouter = withRouter(SignupForm);
 
 class App extends Component {
   constructor(props) {
@@ -116,6 +126,22 @@ class App extends Component {
     });
   }
 
+  onSignUpSubmit(){
+    const { signUpForm } = this.state;
+
+    this.setState({
+      currentUser: {
+        name: signUpForm.name,
+        email: signUpForm.email
+      },
+      signUpForm: {
+        name: '',
+        email: '',
+        password: '',
+      },
+    });
+  }
+
   render() {
     const { currentUser, signUpForm } = this.state;
 
@@ -128,11 +154,12 @@ class App extends Component {
           </ul>
           <div>
             <Route path="/app/signup" render={ () => (
-              <SignupForm
+              <SignupFormWithRouter
                 state={ signUpForm }
                 onNameUpdate={ this.onNameUpdate.bind(this)}
                 onEmailUpdate={ this.onEmailUpdate.bind(this)}
                 onPasswordUpdate={ this.onPasswordUpdate.bind(this)}
+                onSubmit={ this.onSignUpSubmit.bind(this)}
                 />
             )} />
             <Route path="/app/signin" component={ SigninForm } />
