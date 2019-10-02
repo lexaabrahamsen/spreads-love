@@ -20,6 +20,7 @@ class SigninForm extends Component {
 class UserProfile extends Component {
   render() {
     const { user } = this.props;
+
     return (
       <div>
         <h2>User Profile</h2>
@@ -41,6 +42,7 @@ class SignupForm extends Component {
       onEmailUpdate,
       onPasswordUpdate,
       onSubmit,
+      history,
     } = this.props;
 
     return (
