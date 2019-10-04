@@ -70,12 +70,12 @@ class SignupForm extends Component {
             value={ password }
             placeholder="Your password" />
           </div>
-          <div>
-            <button type="button" onClick={ () = {
-              onSubmit();
-              history.push('/app/user/profile');
-            }}>Continue</button>
-          </div>
+          // <div>
+            // <button type="button" onClick={ () = {
+            //   onSubmit();
+            //   history.push('/app/user/profile');
+            // }}>Continue</button>
+          // </div>
         </div>
     );
   }

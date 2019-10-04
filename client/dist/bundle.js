@@ -93,7 +93,7 @@
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("const express = __webpack_require__(/*! express */ \"express\");\nconst app = express();\n\n//----------------------------------\nconst mongoose = __webpack_require__(/*! mongoose */ \"mongoose\");\nconst Schema = mongoose.Schema;\n\nconst crypto = __webpack_require__(/*! crypto */ \"crypto\");\nconst createHash = crypto.createHash;\n\nmongoose.connect('mongodb://localhost/spreads');\n\nconst UserSchema = new Schema({\n  email: String,\n  displayName: String,\n  hashedPassword: String,\n  salt: String,\n});\n\nUserSchema\n  .virtual('password')\n  .set(function(password) {\n    this._password = password;\n    this.salt = this.makeSalt();\n    this.hashedPassword = this.encryptPassword(password);\n  })\n  .get(function() {\n    return this._password;\n  });\n\nUserSchema.methods = {\n  makeSalt: function() {\n    return crypto.randomBytes(16).toString('base64');\n  },\n\n  authenticate: function(plainText) {\n    return this.encryptPassword(plainText) === this.hashedPassword;\n  },\n\n  encryptPassword: function(password) {\n    if (!password || !this.salt) return '';\n    var salt = new Buffer(this.salt, 'base64');\n    return crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('base64');\n  }\n};\n\nconst User = mongoose.model('User', UserSchema);\n//----------------------------------\n\nconst seed = () => {\n  User.find({}).remove().then(() => {\n    const users = [{\n      email: 'alice@example.com',\n      displayName: 'Alice',\n      password: '123123',\n    },{\n      email: 'bob@example.com',\n      displayName: 'Bob',\n      password: '321321',\n  }];\n\n    User.create(users, (err, users_) => {\n      console.log('MONGODB SEED: ${users_.length} Users created.');\n    });\n  });\n};\n\n//----------------------------------\napp.get('/', function(req, res) {\n  User.find({}, (err, users) => {\n    res.json(users);\n  });\n});\n\nseed();\n\napp.listen(3000);\n\n\n//# sourceURL=webpack:///./server/index.js?");
+eval("// jshint esversion: 6\nconst express = __webpack_require__(/*! express */ \"express\");\nconst app = express();\n\n//----------------------------------\nconst mongoose = __webpack_require__(/*! mongoose */ \"mongoose\");\n// const User = require('./models/user');\nconst Schema = mongoose.Schema;\n\nconst crypto = __webpack_require__(/*! crypto */ \"crypto\");\nconst createHash = crypto.createHash;\n\nmongoose.connect('mongodb://localhost/spreads');\n\nconst UserSchema = new Schema({\n  // ???????????????????\n});\n// const User = mongoose.model('User', UserSchema);\n\nconst seed = () => {\n  User.find({}).remove().then(() => {\n    const users = [{\n        email: 'alice@example.com',\n        displayName: 'Alice',\n        password: '123123',\n    }, {\n        email: 'bob@example.com',\n        displayName: 'Bob',\n        password: '321321',\n    }];\n\n  //   }.then(() => {\n  //     console.log('Created!');\n  //   }, err => {\n  //     console.log('Not created :(', err)\n  // })\n\n    User.create(users, (err, users_) => {\n      // console.log('ERROR:' + err);\n      console.log('MONGODB SEED: ${users_.length} Users created.');\n    });\n  });\n};\n\n//----------------------------------\n\n\napp.get('/', function(req, res) {\n  User.find({}, (err, users) => {\n    res.json(users);\n  });\n});\n\n\n//----------------------------------\n\n\nconst passport = __webpack_require__(/*! passport */ \"passport\");\nconst LocalStrategy = __webpack_require__(/*! passport-local */ \"passport-local\").Strategy;\n\npassport.use(new LocalStrategy({\n  userNameField: 'email',\n  session: false\n  },\n  function(email, password, done) {\n    User.findOne({ username: username }, function (err, user) {\n      if (err) { return done(err); }\n      if (!user) {\n        return done(null, false, { message: 'Incorrect username.' });\n      }\n      if (!user.validPassword(password)) {\n        return done(null, false, { message: 'Incorrect password.' });\n      }\n      return done(null, user);\n    });\n  }\n));\n\napp.post(\n  '/auth/login',\n  passport.authenticate('local'),\n  function(req, res) {\n    res.send('Youre authenticated!');\n  }\n);\n\n//----------------------------------\n\n\nseed();\napp.use((err, req, res, next) => {\n  res.status(err.status || 500);\n  res.json({\n    'error': {\n      message:err.message,\n      error: err\n    }\n  });\n  next();\n});\n\napp.listen(3000);\n\n\n//# sourceURL=webpack:///./server/index.js?");
 
 /***/ }),
 
@@ -127,6 +127,28 @@ eval("module.exports = require(\"express\");\n\n//# sourceURL=webpack:///externa
 /***/ (function(module, exports) {
 
 eval("module.exports = require(\"mongoose\");\n\n//# sourceURL=webpack:///external_%22mongoose%22?");
+
+/***/ }),
+
+/***/ "passport":
+/*!***************************!*\
+  !*** external "passport" ***!
+  \***************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("module.exports = require(\"passport\");\n\n//# sourceURL=webpack:///external_%22passport%22?");
+
+/***/ }),
+
+/***/ "passport-local":
+/*!*********************************!*\
+  !*** external "passport-local" ***!
+  \*********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("module.exports = require(\"passport-local\");\n\n//# sourceURL=webpack:///external_%22passport-local%22?");
 
 /***/ })
 
