@@ -17,7 +17,7 @@ const createHash = crypto.createHash;
 mongoose.connect('mongodb://localhost/spreads');
 
 const UserSchema = new Schema ({
-  
+
 })
 UserSchema.methods = {
   makeSalt: function() {
@@ -68,8 +68,11 @@ app.get('/', function(req, res) {
 
 //----------------------------------
 
+const jwt = require('jsonwebtoken');
+const expressJwt = require('express-jwt');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const SECRET = 'liveedu-tv-secret';
 
 app.use(passport.initialize());
 
@@ -103,8 +106,15 @@ passport.use(new LocalStrategy({
 
 app.post('/auth/login', (req, res, next) => {
   passport.authenticate('local', (err, user) => {
-    console.log(user);
-    res.json(user);
+    const access_token = jwt.sign({
+      id: user._id,
+      email: user.email,
+    }, SECRET, {
+      expiresIn: 60 * 60,
+    });
+    res.json({
+      access_token,
+    });
   })(req, res, next);
 });
 
