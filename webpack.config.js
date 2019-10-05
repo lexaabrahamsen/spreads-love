@@ -32,8 +32,8 @@ module.exports = {
     port: 8000,
     historyApiFallback: {
         rewrites: [
-          { from: /^\/app/, to: '/app/index.html' }
-      ],
+          { from: /./, to: '/views/404.html'}
+        ],
+    },
   },
-},
 };

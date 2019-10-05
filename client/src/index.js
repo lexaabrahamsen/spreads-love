@@ -11,8 +11,39 @@ import { withRouter } from 'react-router';
 
 class SigninForm extends Component {
   render() {
+
+    const {
+      state: {
+        email,
+        password,
+      },
+      onEmailUpdate,
+      onPasswordUpdate,
+      onSubmit,
+    } = this.props;
     return (
-      <h2>Sign in form</h2>
+      <div>
+        <h2>Sign up form</h2>
+        <div>
+          <input
+          type="email"
+          onChange={ e => onEmailUpdate(e.target.value) }
+          value={ email }
+          placeholder="Your email" />
+        </div>
+        <div>
+          <input
+          type="password"
+          onChange={ e => onPasswordUpdate(e.target.value) }
+          value={ password }
+          placeholder="Your password" />
+        </div>
+        <div>
+          <button type="button" onClick={ () => {
+            onSubmit();
+          }}>Continue</button>
+        </div>
+      </div>
     );
   }
 }
@@ -70,12 +101,12 @@ class SignupForm extends Component {
             value={ password }
             placeholder="Your password" />
           </div>
-          // <div>
-            // <button type="button" onClick={ () = {
-            //   onSubmit();
-            //   history.push('/app/user/profile');
-            // }}>Continue</button>
-          // </div>
+          <div>
+            <button type="button" onClick={ () => {
+              onSubmit();
+              history.push('/app/user/profile');
+            }}>Continue</button>
+          </div>
         </div>
     );
   }
@@ -94,7 +125,7 @@ class App extends Component {
         email: '',
         password: '',
       },
-    }
+    };
   }
 
   onNameUpdate(name) {
@@ -107,23 +138,23 @@ class App extends Component {
     });
   }
 
-  onEmailUpdate(email){
-    const { signUpForm } = this.state;
+  onEmailUpdate(form, email) {
+    const oldForm = this.state[form];
 
-    const updatedForm = Object.assign({}, signUpForm, { email });
+    const updatedForm = Object.assign({}, oldForm, { email });
 
     this.setState({
-      signUpForm: updatedForm,
+      [form]: updatedForm,
     });
   }
 
-  onPasswordUpdate(password){
-    const { signUpForm } = this.state;
+  onPasswordUpdate(form, password) {
+    const oldForm = this.state[form];
 
-    const updatedForm = Object.assign({}, signUpForm, { password });
+    const updatedForm = Object.assign({}, oldForm, { password });
 
     this.setState({
-      signUpForm: updatedForm,
+      [form]: updatedForm,
     });
   }
 
@@ -163,7 +194,15 @@ class App extends Component {
                 onSubmit={ this.onSignUpSubmit.bind(this)}
                 />
             )} />
-            <Route path="/app/signin" component={ SigninForm } />
+            <Route path="/app/signin" render={ () => (
+              <SigninForm
+                state={ signInForm }
+                onNameUpdate={ this.onNameUpdate.bind(this)}
+                onEmailUpdate={ this.onEmailUpdate.bind(this)}
+                onPasswordUpdate={ this.onPasswordUpdate.bind(this)}
+                onSubmit={ this.onSignInSubmit.bind(this)}
+              />
+          )} />
             <Route path="/app/user/profile" render={ () => (
               <UserProfile user={ currentUser } />
             )} />
