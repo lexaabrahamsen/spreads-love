@@ -6,19 +6,118 @@ const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
 
-//----------------------------------
 const mongoose = require('mongoose');
-// const User = require('./models/user');
-const Schema = mongoose.Schema;
+const dbUri = 'mongodb://localhost/spreads';
+const dbOptions = {
+  //useMongoClient: true,
+  promiseLibrary: require('bluebird'),
+};
+const db = mongoose.createConnection(dbUri, dbOptions);
 
-const crypto = require('crypto');
-const createHash = crypto.createHash;
+const User = require('./models/user')(db);
+//----------------------------------
+//Seed
+const seed = () => {
+    const users = [{
+        email: 'alice@example.com',
+        displayName: 'Alice',
+        password: '123123',
+    }, {
+        email: 'bob@example.com',
+        displayName: 'Bob',
+        password: '321321',
+    }];
 
-mongoose.connect('mongodb://localhost/spreads');
+    User.create(users, (err, users_) => {
+      console.log('MONGODB SEED: ${users_.length} Users created.');
+    });
+};
+db.on('open', () => {
+  seed();
+});
+//----------------------------------
+
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const auth = require('./auth.js');
+
+app.use(passport.initialize());
+
+passport.use(
+  new LocalStrategy({
+    userNameField: 'email',
+  },
+  function(email, password, done) {
+    User.findOne({ email }, function (err, user) {
+      console.log('User is: ', user);
+      if (err) {
+        console.error('Auth error: ' + err);
+        return done(err);
+      }
+      if (!user) {
+        return done(null, false, { message: 'Incorrect username.' });
+      }
+      if (!user.authenticate(password)) {
+        return done(null, false, { message: 'Incorrect password.' });
+      }
+      return done(null, user);
+    });
+  })
+);
+
+app.post('/auth/login',
+  passport.authenticate('local', { session: false }),
+  (req, res) => {
+    console.log('auth/login', req.user);
+    const access_token = auth.sign(user);
+    res.json({ access_token });
+  }
+);
+//----------------------------------
+// Basic routes
+app.get('/', function(req, res) {
+  User.find({}, (err, users) => {
+    res.json(users);
+  });
+});
+
+app.get('/protected', isAuthenticated, function(req, res) {
+    res.send('Authenticated!');
+});
+
+const router = express.Router();
+
+app.use('/api', require('./api')(isAuthenticated));
+
+//----------------------------------
+
+app.use((err, req, res, next) => {
+  res.status(err.status || 500);
+  res.json({
+    'error': {
+      message:err.message,
+      error: err
+    }
+  });
+  next();
+});
+
+app.listen(3000);
+
+passport.serializeUser(function(user, done) {
+  done(null, user.email);
+});
+
+passport.deserializeUser(function(email, done) {
+  User.findOne({ email }, function(err, user) {
+    done(err, user);
+  });
+});
 
 const UserSchema = new Schema ({
 
-})
+});
+
 UserSchema.methods = {
   makeSalt: function() {
     return crypto.randomBytes(16).toString('base64');
@@ -35,102 +134,28 @@ UserSchema.methods = {
   }
 };
 
-const User = mongoose.model('User', UserSchema);
-//----------------------------------
+module.exports = db => db.model('User', UserSchema);
 
-const seed = () => {
-  User.find({}).remove().then(() => {
-    const users = [{
-        email: 'alice@example.com',
-        displayName: 'Alice',
-        password: '123123',
-    }, {
-        email: 'bob@example.com',
-        displayName: 'Bob',
-        password: '321321',
-    }];
+// const User = mongoose.model('User', UserSchema);
 
-    User.create(users, (err, users_) => {
-      console.log('MONGODB SEED: ${users_.length} Users created.');
-    });
-  });
+
+app.use((req, res, next) => {
+
+const isAuthenticated = (req, res, next) => {
+  console.log(req.user);
+  if (req.user && req.user.email) {
+    next();
+  } else {
+    next(403);
+  }
+};
+
+const sendUnauthorized = (req, res) => {
+  res.status(401).json({ message: 'Unauthorized' });
 };
 
 //----------------------------------
 
+// seed();
 
-app.get('/', function(req, res) {
-  User.find({}, (err, users) => {
-    res.json(users);
-  });
-});
-
-
-//----------------------------------
-
-const jwt = require('jsonwebtoken');
-const expressJwt = require('express-jwt');
-const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const SECRET = 'liveedu-tv-secret';
-
-app.use(passport.initialize());
-
-passport.serializeUser(function(user, done) {
-  done(null, user.email);
-});
-
-passport.deserializeUser(function(email, done) {
-  User.findOne({ email }, function(err, user) {
-    done(err, user);
-  });
-});
-
-passport.use(new LocalStrategy({
-  userNameField: 'email',
-  session: false
-  },
-  function(email, password, done) {
-    User.findOne({ email }, function (err, user) {
-      if (err) { return done(err); }
-      if (!user) {
-        return done(null, false, { message: 'Incorrect username.' });
-      }
-      if (!user.authenticate(password)) {
-        return done(null, false, { message: 'Incorrect password.' });
-      }
-      return done(null, user);
-    });
-  }
-));
-
-app.post('/auth/login', (req, res, next) => {
-  passport.authenticate('local', (err, user) => {
-    const access_token = jwt.sign({
-      id: user._id,
-      email: user.email,
-    }, SECRET, {
-      expiresIn: 60 * 60,
-    });
-    res.json({
-      access_token,
-    });
-  })(req, res, next);
-});
-
-//----------------------------------
-
-seed();
-
-app.use((err, req, res, next) => {
-  res.status(err.status || 500);
-  res.json({
-    'error': {
-      message:err.message,
-      error: err
-    }
-  });
-  next();
-});
-
-app.listen(3000);
+http.listen(3000);

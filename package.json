@@ -9,6 +9,7 @@
     "babel-preset-react": "^6.24.1",
     "bable-loader": "0.0.1-security",
     "body-parser": "^1.19.0",
+    "composable-middleware": "^0.3.0",
     "esm": "^3.2.25",
     "express": "^4.17.1",
     "express-jwt": "^5.3.1",
