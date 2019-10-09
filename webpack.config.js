@@ -1,16 +1,12 @@
 const path = require('path');
 
-var nodeExternals = require('webpack-node-externals');
-
 module.exports = {
-  mode: "development",
-  target: 'node',
-  externals: [nodeExternals()],
-  entry: "./client/src/index.js",
+  mode: 'development',
+  entry: './client/src/index.js',
 
   output: {
     path: path.resolve(__dirname, './client/dist'),
-    filename: 'bundle.js',
+    filename: 'bundle.js'
   },
 
   module: {
@@ -22,6 +18,7 @@ module.exports = {
       ],
       options: {
         presets: ['@babel/preset-react']
+        // presets: ['react']
       },
     }],
   },
@@ -29,11 +26,6 @@ module.exports = {
   devServer: {
     contentBase: path.resolve(__dirname, './client/dist'),
     compress: true,
-    port: 8000,
-    historyApiFallback: {
-        rewrites: [
-          { from: /./, to: '/views/404.html'}
-        ],
-    },
-  },
+    port: 8000
+  }
 };
