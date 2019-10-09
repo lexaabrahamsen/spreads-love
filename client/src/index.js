@@ -7,6 +7,28 @@ import {
   Link
 } from 'react-router-dom';
 
+class SigninForm extends Component {
+  render() {
+    return (
+      <h2>Sign in form</h2>
+    );
+  }
+}
+
+class SignupForm extends Component {
+  render() {
+    return (
+      <div>
+        <h2>Sign up form</h2>
+
+        <input type="text" placeholder="Your name" />
+        <input type="email" placeholder="Your email"/>
+        <input type="password" placeholder="Your password" />
+      </div>
+    );
+  }
+}
+
 class App extends Component {
   render() {
     return (
@@ -17,7 +39,8 @@ class App extends Component {
             <li><Link to="/app/signup">Sign up</Link></li>
           </ul>
           <div>
-            <Route path="/app/signin"
+            <Route path="/app/signin" component={ SigninForm } />
+            <Route path="/app/signup" component={ SignupForm } />
           </div>
         </div>
       </Router>
