@@ -70,7 +70,9 @@ const seed = () => {
 // -------------------------------------------------
 
 app.get('/', function(req, res) {
-  res.send('hellooooo world');
+  User.find({}, (err, users) => {
+    res.json(users);
+  });
 });
 
 seed();
