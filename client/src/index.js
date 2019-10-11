@@ -1,3 +1,4 @@
+// CLIENT
 import React, { Component } from 'react';
 // import { withRouter } from "react-router";
 import { render } from 'react-dom';
