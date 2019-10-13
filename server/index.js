@@ -6,20 +6,21 @@ const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
 
-
-
 // -------------------------------------------------
 const mongoose = require('mongoose');
-const crypto = require('crypto');
-const createHash = crypto.createHash;
+const dbUri = 'mongodb://localhost/spreads';
+const dbOptions = {
+  promiseLibrary: require('bluebird'),
+};
 
-mongoose.connect('mongodb://localhost/spreads', { useNewUrlParser: true });
+const db = mongoose.createConnection(dbUri, dbOptions);
 
-const User = require('./models/user');
+const User = require('./models/user')(db);
 
-
+// -------------------------------------------------
+//Seed
 const seed = () => {
-  User.find({}).remove().then(() => {
+  // User.find({}).remove().then(() => {
     const users = [{
       email: 'alice@example.com',
       displayName: 'Alice',
@@ -31,44 +32,27 @@ const seed = () => {
     }];
 
     User.create(users, (err, users_) => {
-      console.log(`MONGODB SEED: ${users.length} Users created.`);
-      // console.log(`MONGODB SEED: ${users_.length} Users created.`);
-
+      // console.log(`MONGODB SEED: ${users.length} Users created.`);
+      console.log(`MONGODB SEED: ${users_.length} Users created.`);
     });
-  });
 };
-
-// -------------------------------------------------
-
-app.get('/', function(req, res) {
-  User.find({}, (err, users) => {
-    res.json(users);
-  });
+db.on('open', () => {
+  seed();
 });
 
 // -------------------------------------------------
 
-const jwt = require('jsonwebtoken');
-const expressJwt = require('express-jwt');
+// -------------------------------------------------
+
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-const SECRET = 'liveedu-tv-secret';
+const auth = require('./auth.js');
 
 app.use(passport.initialize());
 
-passport.serializeUser(function(user, done) {
-  done(null, user.email);
-});
-
-passport.deserializeUser(function(email, done) {
-  User.findOne({ email }, function (err, user) {
-    done(err, user);
-  });
-});
-
-passport.use(new LocalStrategy({
-  usernameField: 'email',
-  session: false
+passport.use(
+  new LocalStrategy({
+    usernameField: 'email'
   },
   function(email, password, done) {
     User.findOne({ email }, function(err, user) {
@@ -84,27 +68,41 @@ passport.use(new LocalStrategy({
       }
       return done(null, user);
     });
-    console.log('Looking for a user...');
-  }
-));
+  })
+);
 
-app.post('/auth/login', (req, res, next) => {
-  passport.authenticate('local', (err, user) => {
-    const access_token = jwt.sign({
-      id: user._id,
-      email: user.email,
-    }, SECRET, {
-      expiresIn: 60 * 60,
-    });
-    res.json({
-      access_token,
-    });
-  })(req, res, next);
+app.post('/auth/login',
+  passport.authenticate('local', { session: false }),
+  (req, res) => {
+    console.log('auth/login', req.user);
+    const access_token = auth.sign(user);
+    res.json({ access_token });
+  }
+);
+
+
+const isAuthenticated = auth.isAuthenticated(User);
+
+// -------------------------------------------------
+// Basic routes
+app.get('/', function(req, res) {
+  User.find({}, (err, users) => {
+    res.json(users);
+  });
 });
+
+app.get('/protected', auth.isAuthenticated(User), function(req, res) {
+  res.send('Authenticated!');
+});
+
+// app.use('/api', require('./api')(db, isAuthenticated));
+
 
 // -------------------------------------------------
 
-seed();
+// seed();
+
+// -------------------------------------------------
 
 app.use((err, req, res, next) => {
   res.status(err.status || 500);
@@ -116,5 +114,8 @@ app.use((err, req, res, next) => {
   });
   next();
 });
+
+// -------------------------------------------------
+
 
 app.listen(3000);

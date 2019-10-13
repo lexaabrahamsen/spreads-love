@@ -1,6 +1,8 @@
 // SERVER/MODEL/users_
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const crypto = require('crypto');
+const createHash = crypto.createHash;
 
 
 const UserSchema = new Schema({
@@ -37,6 +39,8 @@ UserSchema.methods = {
   }
 };
 
-const User = mongoose.model('User', UserSchema);
+module.exports = db => db.model('User', UserSchema);
+
+// const User = mongoose.model('User', UserSchema);
 // -------------------------------------------------
-module.exports = User;
+// module.exports = User;
