@@ -41,7 +41,6 @@ db.on('open', () => {
 });
 
 // -------------------------------------------------
-
 // -------------------------------------------------
 
 const passport = require('passport');
@@ -56,6 +55,7 @@ passport.use(
   },
   function(email, password, done) {
     User.findOne({ email }, function(err, user) {
+      console.log('User is: ', user);
       if (err) {
         console.error('Auth error: ' + err);
         return done(err);
@@ -73,13 +73,13 @@ passport.use(
 
 app.post('/auth/login',
   passport.authenticate('local', { session: false }),
-  (req, res) => {
-    console.log('auth/login', req.user);
+  ({ user }, res) => {
+  // (req, res) => {
+    // console.log('auth/login', req.user);
     const access_token = auth.sign(user);
     res.json({ access_token });
   }
 );
-
 
 const isAuthenticated = auth.isAuthenticated(User);
 
@@ -91,16 +91,13 @@ app.get('/', function(req, res) {
   });
 });
 
-app.get('/protected', auth.isAuthenticated(User), function(req, res) {
+app.get('/protected', isAuthenticated, function(req, res) {
   res.send('Authenticated!');
 });
 
+
 // app.use('/api', require('./api')(db, isAuthenticated));
-
-
-// -------------------------------------------------
-
-// seed();
+app.use('/api', require('./api')(isAuthenticated));
 
 // -------------------------------------------------
 
@@ -116,6 +113,5 @@ app.use((err, req, res, next) => {
 });
 
 // -------------------------------------------------
-
 
 app.listen(3000);
