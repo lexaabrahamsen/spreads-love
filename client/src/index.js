@@ -13,8 +13,42 @@ import { withRouter } from 'react-router';
 
 class SigninForm extends Component {
   render() {
+
+    const {
+      state: {
+        email,
+        password,
+      },
+      onEmailUpdate,
+      onPasswordUpdate,
+      onSubmit,
+    } = this.props;
+
+    const FORM_NAME = 'signInForm';
+
     return (
-      <h2>Sign in form</h2>
+      <div>
+        <h2>Sign in form</h2>
+        <div>
+          <input
+            type="email"
+            onChange={ e => onEmailUpdate(FORM_NAME, e.target.value) }
+            value={ email }
+            placeholder="Your email" />
+        </div>
+        <div>
+          <input
+            type="password"
+            onChange={ e => onPasswordUpdate(FORM_NAME, e.target.value) }
+            value={ password }
+            placeholder="Your password" />
+        </div>
+        <div>
+          <button type="button" onClick={ () => {
+            onSubmit();
+          }}>Continue</button>
+        </div>
+      </div>
     );
   }
 }
@@ -48,6 +82,8 @@ class SignupForm extends Component {
       history,
     } = this.props;
 
+    const FORM_NAME = 'signUpForm';
+
     return (
       <div>
         <h2>Sign up form</h2>
@@ -62,14 +98,14 @@ class SignupForm extends Component {
         <div>
           <input
             type="email"
-            onChange={ e => onEmailUpdate(e.target.value) }
+            onChange={ e => onEmailUpdate(FORM_NAME, e.target.value) }
             value={ email }
             placeholder="Your email" />
         </div>
         <div>
           <input
             type="password"
-            onChange={ e => onPasswordUpdate(e.target.value) }
+            onChange={ e => onPasswordUpdate(FORM_NAME, e.target.value) }
             value={ password }
             placeholder="Your password" />
         </div>
@@ -93,6 +129,10 @@ class App extends Component {
 
     this.state = {
       currentUser: null,
+      signInForm: {
+        email: '',
+        password: '',
+      },
       signUpForm: {
         name: '',
         email: '',
@@ -111,23 +151,23 @@ class App extends Component {
     });
   }
 
-  onEmailUpdate(email) {
-    const { signUpForm } = this.state;
+  onEmailUpdate(form, email) {
+    const oldForm = this.state[form];
 
-    const updatedForm = Object.assign({}, signUpForm, { email });
+    const updatedForm = Object.assign({}, oldForm, { email });
 
     this.setState({
-      signUpForm: updatedForm,
+      [form]: updatedForm,
     });
   }
 
-  onPasswordUpdate(password) {
-    const { signUpForm } = this.state;
+  onPasswordUpdate(form, password) {
+    const oldForm = this.state[form];
 
-    const updatedForm = Object.assign({}, signUpForm, { password });
+    const updatedForm = Object.assign({}, oldForm, { password });
 
     this.setState({
-      signUpForm: updatedForm,
+      [form]: updatedForm,
     });
   }
 
@@ -147,8 +187,24 @@ class App extends Component {
     });
   }
 
+  onSignInSubmit() {
+    const { signInForm } = this.state;
+
+    this.setState({
+      currentUser: {
+        name: signInForm.name,
+        email: signInForm.email,
+      },
+      signInForm: {
+        name: '',
+        email: '',
+        password: '',
+      },
+    });
+  }
+
   render() {
-    const { currentUser, signUpForm } = this.state;
+    const { currentUser, signUpForm, signInForm } = this.state;
 
     return (
       <Router>
@@ -167,7 +223,14 @@ class App extends Component {
                 onSubmit={ this.onSignUpSubmit.bind(this) }
                 />
             )} />
-            <Route path="/app/signin" component={ SigninForm } />
+            <Route path="/app/signin" render={ () => (
+              <SigninForm
+                state={ signInForm }
+                onEmailUpdate={ this.onEmailUpdate.bind(this) }
+                onPasswordUpdate={ this.onPasswordUpdate.bind(this) }
+                onSubmit={ this.onSignInSubmit.bind(this) }
+                />
+            )} />
             <Route path="/app/user/profile" render={ () => (
               <UserProfile user={ currentUser } />
             )} />

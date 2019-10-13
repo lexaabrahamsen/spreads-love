@@ -96,7 +96,6 @@ app.get('/protected', isAuthenticated, function(req, res) {
 });
 
 
-// app.use('/api', require('./api')(db, isAuthenticated));
 app.use('/api', require('./api')(isAuthenticated));
 
 // -------------------------------------------------
