@@ -40,3 +40,7 @@ UserSchema.methods = {
 };
 
 module.exports = db => db.model('User', UserSchema);
+
+// const User = mongoose.model('User', UserSchema);
+// -------------------------------------------------
+// module.exports = User;

@@ -37,7 +37,7 @@ function isAuthenticated(User) {
   .use(validateJwt)
   .use((req, res, next) => {
     const { _id } = req.user;
-    User.findById(_id, function(err, user) {
+    User.findById(_id, '-hashedPassword -salt', function(err, user) {
       if (err) return next(err);
       if (!user) return sendUnauthorized(req, res);
       req.user = user;
