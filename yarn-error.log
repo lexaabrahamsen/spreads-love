@@ -1,25 +1,30 @@
 Arguments: 
-  /usr/local/bin/node /Users/lexaabrahamsen/.yarn/bin/yarn.js start-server
+  /Users/lexaabrahamsen/.nvm/versions/node/v12.12.0/bin/node /Users/lexaabrahamsen/.yarn/bin/yarn.js init
 
 PATH: 
-  /Users/lexaabrahamsen/.yarn/bin:/Users/lexaabrahamsen/.config/yarn/global/node_modules/.bin:/Library/Frameworks/Python.framework/Versions/3.7/bin:/Users/lexaabrahamsen/.rbenv/shims:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+  /Users/lexaabrahamsen/.npm-global/bin:/Users/lexaabrahamsen/.npm-global/bin:/Users/lexaabrahamsen/.nvm/versions/node/v12.12.0/bin:/Users/lexaabrahamsen/.yarn/bin:/Users/lexaabrahamsen/.config/yarn/global/node_modules/.bin:/Library/Frameworks/Python.framework/Versions/3.7/bin:/Users/lexaabrahamsen/.rbenv/shims:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 
 Yarn version: 
   1.17.3
 
 Node version: 
-  12.10.0
+  12.12.0
 
 Platform: 
   darwin x64
 
 Trace: 
-  SyntaxError: /Users/lexaabrahamsen/spreads-love/package.json: Unexpected token / in JSON at position 1024
-      at JSON.parse (<anonymous>)
-      at /Users/lexaabrahamsen/.yarn/lib/cli.js:1625:59
-      at Generator.next (<anonymous>)
-      at step (/Users/lexaabrahamsen/.yarn/lib/cli.js:304:30)
-      at /Users/lexaabrahamsen/.yarn/lib/cli.js:315:13
+  Error: canceled
+      at Interface.<anonymous> (/Users/lexaabrahamsen/.yarn/lib/cli.js:136724:13)
+      at Interface.emit (events.js:210:5)
+      at Interface._ttyWrite (readline.js:887:16)
+      at ReadStream.onkeypress (readline.js:191:10)
+      at ReadStream.emit (events.js:210:5)
+      at emitKeys (internal/readline/utils.js:433:14)
+      at emitKeys.next (<anonymous>)
+      at ReadStream.onData (readline.js:1153:36)
+      at ReadStream.emit (events.js:210:5)
+      at addChunk (_stream_readable.js:308:12)
 
 npm manifest: 
   {
@@ -58,8 +63,7 @@ npm manifest:
       "webpack-cli": "^3.3.9"
     },
     "scripts": {
-      /*"start": "webpack",*/
-      "start": "yarn start-client && yarn start-server",
+      "start": "webpack",
       "start-client": "webpack-dev-server",
       "start-server": "nodemon server/index.js"
     },

@@ -95,17 +95,13 @@ app.get('/protected', auth.isAuthenticated(User), function(req, res) {
   res.send('Authenticated!');
 });
 
-<<<<<<< HEAD
 
-app.use('/api', require('./api')(isAuthenticated));
-=======
 // app.use('/api', require('./api')(db, isAuthenticated));
 
 
 // -------------------------------------------------
 
 // seed();
->>>>>>> parent of 79be0d5a... Continue work on authentication
 
 // -------------------------------------------------
 
