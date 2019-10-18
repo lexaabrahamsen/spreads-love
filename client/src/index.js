@@ -1,249 +1,304 @@
-// CLIENT
 import React, { Component } from 'react';
-// import { withRouter } from "react-router";
 import { render } from 'react-dom';
+// import io from 'socket.io-client';
+
+import API from './api.js';
 
 import {
-  BrowserRouter as Router,
-  Route,
-  Link
+    BrowserRouter as Router,
+    Route,
+    Switch,
+    Link
 } from 'react-router-dom';
 
-import { withRouter } from 'react-router';
+import SignupForm from './SignupForm.js';
+import SigninForm from './SigninForm.js';
+import UserProfile from './UserProfile.js';
+// import PeopleList from './PeopleList.js';
 
-class SigninForm extends Component {
-  render() {
-
-    const {
-      state: {
-        email,
-        password,
-      },
-      onEmailUpdate,
-      onPasswordUpdate,
-      onSubmit,
-    } = this.props;
-
-    const FORM_NAME = 'signInForm';
-
-    return (
-      <div>
-        <h2>Sign in form</h2>
-        <div>
-          <input
-            type="email"
-            onChange={ e => onEmailUpdate(FORM_NAME, e.target.value) }
-            value={ email }
-            placeholder="Your email" />
-        </div>
-        <div>
-          <input
-            type="password"
-            onChange={ e => onPasswordUpdate(FORM_NAME, e.target.value) }
-            value={ password }
-            placeholder="Your password" />
-        </div>
-        <div>
-          <button type="button" onClick={ () => {
-            onSubmit();
-          }}>Continue</button>
-        </div>
-      </div>
-    );
-  }
-}
-
-class UserProfile extends Component {
-  render() {
-    const { user } = this.props;
-
-    return (
-      <div>
-        <h2>User Profile</h2>
-        <span>{ user.name }</span>
-      </div>
-    );
-  }
-}
-
-class SignupForm extends Component {
-  render() {
-    const {
-      state: {
-        name,
-        email,
-        password,
-      },
-      onNameUpdate,
-      onEmailUpdate,
-      onPasswordUpdate,
-      onSubmit,
-
-      history,
-    } = this.props;
-
-    const FORM_NAME = 'signUpForm';
-
-    return (
-      <div>
-        <h2>Sign up form</h2>
-
-        <div>
-          <input
-            type="text"
-            onChange={ e => onNameUpdate(e.target.value) }
-            value={ name }
-            placeholder="Your name" />
-        </div>
-        <div>
-          <input
-            type="email"
-            onChange={ e => onEmailUpdate(FORM_NAME, e.target.value) }
-            value={ email }
-            placeholder="Your email" />
-        </div>
-        <div>
-          <input
-            type="password"
-            onChange={ e => onPasswordUpdate(FORM_NAME, e.target.value) }
-            value={ password }
-            placeholder="Your password" />
-        </div>
-        <div>
-          <button type="button" onClick={ () => {
-            onSubmit();
-            history.push('/app/user/profile');
-          }}>Continue</button>
-        </div>
-
-      </div>
-    );
-  }
-}
-
-const SignupFormWithRouter = withRouter(SignupForm);
+const Protected = ({ authenticated, children }) => (
+    authenticated ? children : null
+);
 
 class App extends Component {
-  constructor(props) {
-    super(props);
+    constructor(props) {
+        super(props);
 
-    this.state = {
-      currentUser: null,
-      signInForm: {
-        email: '',
-        password: '',
-      },
-      signUpForm: {
-        name: '',
-        email: '',
-        password: '',
-      },
-    };
-  }
+        const access_token = window.localStorage.getItem('access_token');
 
-  onNameUpdate(name) {
-    const { signUpForm } = this.state;
+        this.state = {
+            access_token,
+            currentUser: null,
+            user: null,
+            people: [],
+            signInForm: {
+                email: 'bob@example.com',
+                password: '321321',
+            },
+            signUpForm: {
+                displayName: 'Bob Ross',
+                email: 'bob1@example.com',
+                password: '321321',
+            },
+            messages: [],
+        };
 
-    const updatedForm = Object.assign({}, signUpForm, { name });
+        this.api = API(access_token);
+    }
 
-    this.setState({
-      signUpForm: updatedForm,
-    });
-  }
+    componentDidUpdate() {
+        const { access_token } = this.state;
+        window.localStorage.setItem('access_token', access_token);
+    }
 
-  onEmailUpdate(form, email) {
-    const oldForm = this.state[form];
+    componentDidMount() {
+        const { access_token } = this.state;
+        this.loadCurrentUser();
 
-    const updatedForm = Object.assign({}, oldForm, { email });
+        // -------------------------
+        // Socket.io integration
 
-    this.setState({
-      [form]: updatedForm,
-    });
-  }
+        // const socket = io('http://localhost:3000');
+        // this.socket = socket;
+        //
+        // socket.on('getMsgs', messages => {
+        //     this.setState({
+        //         messages,
+        //     });
+        // });
+        //
+        // socket.on('newChatMsg', msg => {
+        //     this.setState({
+        //         messages: [].concat(this.state.messages, msg),
+        //     });
+        // });
+    }
 
-  onPasswordUpdate(form, password) {
-    const oldForm = this.state[form];
+    sendChatMsg(text) {
+        const msg = {
+            sender: this.state.currentUser.displayName,
+            text,
+        };
 
-    const updatedForm = Object.assign({}, oldForm, { password });
+        this.setState({
+            messages: [].concat(this.state.messages, msg),
+        });
 
-    this.setState({
-      [form]: updatedForm,
-    });
-  }
+        this.socket.emit('chatMsg', msg);
+    }
 
-  onSignUpSubmit() {
-    const { signUpForm } = this.state;
+    onNameUpdate(displayName) {
+        const { signUpForm } = this.state;
 
-    this.setState({
-      currentUser: {
-        name: signUpForm.name,
-        email: signUpForm.email,
-      },
-      signUpForm: {
-        name: '',
-        email: '',
-        password: '',
-      },
-    });
-  }
+        const updatedForm = Object.assign({}, signUpForm, { displayName });
 
-  onSignInSubmit() {
-    const { signInForm } = this.state;
+        this.setState({
+            signUpForm: updatedForm,
+        });
+    }
 
-    this.setState({
-      currentUser: {
-        name: signInForm.name,
-        email: signInForm.email,
-      },
-      signInForm: {
-        name: '',
-        email: '',
-        password: '',
-      },
-    });
-  }
+    onEmailUpdate(form, email) {
+        const oldForm = this.state[form];
 
-  render() {
-    const { currentUser, signUpForm, signInForm } = this.state;
+        const updatedForm = Object.assign({}, oldForm, { email });
 
-    return (
-      <Router>
-        <div>
-          <ul>
-            <li><Link to="/app/signin">Sign in</Link></li>
-            <li><Link to="/app/signup">Sign up</Link></li>
-          </ul>
-          <div>
-            <Route path="/app/signup" render={ () => (
-              <SignupFormWithRouter
-                state={ signUpForm }
-                onNameUpdate={ this.onNameUpdate.bind(this) }
-                onEmailUpdate={ this.onEmailUpdate.bind(this) }
-                onPasswordUpdate={ this.onPasswordUpdate.bind(this) }
-                onSubmit={ this.onSignUpSubmit.bind(this) }
-                />
-            )} />
-            <Route path="/app/signin" render={ () => (
-              <SigninForm
-                state={ signInForm }
-                onEmailUpdate={ this.onEmailUpdate.bind(this) }
-                onPasswordUpdate={ this.onPasswordUpdate.bind(this) }
-                onSubmit={ this.onSignInSubmit.bind(this) }
-                />
-            )} />
-            <Route path="/app/user/profile" render={ () => (
-              <UserProfile user={ currentUser } />
-            )} />
-          </div>
-        </div>
-      </Router>
-    );
-  }
+        this.setState({
+            [form]: updatedForm,
+        });
+    }
+
+    onPasswordUpdate(form, password) {
+        const oldForm = this.state[form];
+
+        const updatedForm = Object.assign({}, oldForm, { password });
+
+        this.setState({
+            [form]: updatedForm,
+        });
+    }
+
+    onSignUpSubmit() {
+        const { signUpForm } = this.state;
+
+        this.api.post({
+            endpoint: 'auth/signup',
+            body: {
+                email: signUpForm.email,
+                displayName: signUpForm.displayName,
+                password: signUpForm.password,
+            },
+        })
+            .then(({ access_token }) => {
+                this.setState({
+                    access_token,
+                });
+
+                this.setState({
+                    currentUser: {
+                        displayName: signUpForm.displayName,
+                        email: signUpForm.email,
+                    },
+                    signUpForm: {
+                        name: '',
+                        email: '',
+                        password: '',
+                    },
+                });
+
+                this.api = API(access_token);
+
+                this.loadCurrentUser();
+            })
+            .catch(err => console.error(err));
+    }
+
+    onSignInSubmit() {
+        const {
+            signInForm: {
+                email,
+                password,
+            },
+        } = this.state;
+
+        this.api.post({
+            endpoint: 'auth/login',
+            body: {
+                email,
+                password,
+            }
+        })
+            .then(({ access_token }) => {
+                this.setState({
+                    access_token,
+                });
+
+                this.api = API(access_token);
+
+                this.loadCurrentUser();
+            })
+            .catch(err => console.error(err));
+    }
+
+    loadCurrentUser() {
+        this.loadUser({ id: 'me' });
+    }
+
+    loadUser({ id }) {
+        const userField = id === 'me' ? 'currentUser' : 'user';
+        this.setState({
+            [userField]: false,
+        });
+        this.api
+            .get({ endpoint: `api/users/${id}` })
+            .then(({ _id, email, displayName }) => {
+                this.setState({
+                    [userField]: {
+                        _id,
+                        email,
+                        displayName,
+                    },
+                });
+            });
+    }
+
+    // loadPeople() {
+    //     this.api.get({
+    //         endpoint: 'api/users',
+    //     }).then(({ users }) => {
+    //         this.setState({ people: users });
+    //     });
+    // }
+
+    // vote(upOrDown, id) {
+    //     this.api.get({
+    //         endpoint: `api/users/${ id }/vote/${ upOrDown }`,
+    //     });
+    // }
+
+    // voteUp(id) {
+    //     this.vote('up', id);
+    // }
+    //
+    // voteDown(id) {
+    //     this.vote('down', id);
+    // }
+
+    render() {
+        const {
+            currentUser,
+            user,
+            signUpForm,
+            signInForm,
+            // people,
+        } = this.state;
+
+        return (
+            <Router>
+                <div>
+                    <ul>
+                        <li><Link to="/app/signin">Sign in</Link></li>
+                        <li><Link to="/app/signup">Sign up</Link></li>
+                        <Protected authenticated={ !!currentUser }>
+                            <li><Link to="/app/user/me/profile">{ currentUser && currentUser.displayName }</Link></li>
+                        </Protected>
+                        <Protected authenticated={ !!currentUser }>
+                            <li><Link to="/app/people">People</Link></li>
+                        </Protected>
+                    </ul>
+                    <div>
+                        <Route path="/app/signup" render={ () => (
+                            <SignupForm
+                                state={ signUpForm }
+                                onNameUpdate={ this.onNameUpdate.bind(this) }
+                                onEmailUpdate={ this.onEmailUpdate.bind(this) }
+                                onPasswordUpdate={ this.onPasswordUpdate.bind(this) }
+                                onSubmit={ this.onSignUpSubmit.bind(this) }
+                                />
+                        )} />
+                        <Route path="/app/signin" render={ () => (
+                            <SigninForm
+                                state={ signInForm }
+                                onEmailUpdate={ this.onEmailUpdate.bind(this) }
+                                onPasswordUpdate={ this.onPasswordUpdate.bind(this) }
+                                onSubmit={ this.onSignInSubmit.bind(this) }
+                                />
+                        )} />
+                        <Route path="/app/people" render={ () => (
+                            <PeopleList
+                                people={ people }
+                                loadPeople={ this.loadPeople.bind(this) }
+                                />
+                        )} />
+                        <Switch>
+                            <Route path="/app/user/me/profile" render={ () => (
+                                <UserProfile
+                                    user={ currentUser }
+                                    messages={ this.state.messages }
+                                    onSend={ this.sendChatMsg.bind(this) }
+                                />
+                            )} />
+                            <Route path="/app/user/:id/profile" render={ ({ match }) => (
+                                <UserProfile
+                                    user={ user }
+                                    messages={ this.state.messages }
+                                    match={ match }
+                                    loadUser={ this.loadUser.bind(this) }
+                                    onUp={ this.voteUp.bind(this) }
+                                    onDown={ this.voteDown.bind(this) }
+                                    onSend={ this.sendChatMsg.bind(this) }
+                                    />
+                            )} />
+                        </Switch>
+                    </div>
+                </div>
+            </Router>
+        );
+    }
 }
 
 const container = document.getElementById('root');
 
 render(
-  <App />,
-  container
+    <App />,
+    container
 );
