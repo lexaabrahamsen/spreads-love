@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { render } from 'react-dom';
-// import io from 'socket.io-client';
+import io from 'socket.io-client';
 
 import API from './api.js';
 
@@ -14,7 +14,7 @@ import {
 import SignupForm from './SignupForm.js';
 import SigninForm from './SigninForm.js';
 import UserProfile from './UserProfile.js';
-// import PeopleList from './PeopleList.js';
+import PeopleList from './PeopleList.js';
 
 const Protected = ({ authenticated, children }) => (
     authenticated ? children : null
@@ -58,20 +58,20 @@ class App extends Component {
         // -------------------------
         // Socket.io integration
 
-        // const socket = io('http://localhost:3000');
-        // this.socket = socket;
-        //
-        // socket.on('getMsgs', messages => {
-        //     this.setState({
-        //         messages,
-        //     });
-        // });
-        //
-        // socket.on('newChatMsg', msg => {
-        //     this.setState({
-        //         messages: [].concat(this.state.messages, msg),
-        //     });
-        // });
+        const socket = io('http://localhost:3000');
+        this.socket = socket;
+
+        socket.on('getMsgs', messages => {
+            this.setState({
+                messages,
+            });
+        });
+
+        socket.on('newChatMsg', msg => {
+            this.setState({
+                messages: [].concat(this.state.messages, msg),
+            });
+        });
     }
 
     sendChatMsg(text) {
@@ -201,27 +201,27 @@ class App extends Component {
             });
     }
 
-    // loadPeople() {
-    //     this.api.get({
-    //         endpoint: 'api/users',
-    //     }).then(({ users }) => {
-    //         this.setState({ people: users });
-    //     });
-    // }
+    loadPeople() {
+        this.api.get({
+            endpoint: 'api/users',
+        }).then(({ users }) => {
+            this.setState({ people: users });
+        });
+    }
 
-    // vote(upOrDown, id) {
-    //     this.api.get({
-    //         endpoint: `api/users/${ id }/vote/${ upOrDown }`,
-    //     });
-    // }
+    vote(upOrDown, id) {
+        this.api.get({
+            endpoint: `api/users/${ id }/vote/${ upOrDown }`,
+        });
+    }
 
-    // voteUp(id) {
-    //     this.vote('up', id);
-    // }
-    //
-    // voteDown(id) {
-    //     this.vote('down', id);
-    // }
+    voteUp(id) {
+        this.vote('up', id);
+    }
+
+    voteDown(id) {
+        this.vote('down', id);
+    }
 
     render() {
         const {
@@ -229,7 +229,7 @@ class App extends Component {
             user,
             signUpForm,
             signInForm,
-            // people,
+            people,
         } = this.state;
 
         return (

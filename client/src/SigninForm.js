@@ -17,7 +17,7 @@ class SigninForm extends Component {
 
         return (
             <div>
-                <h2>Im sign in form</h2>
+                <h2>I'm sign in form</h2>
                 <div>
                     <input
                         type="email"

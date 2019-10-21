@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const http = require('http').Server(app);
-// const io = require('socket.io')(http);
+const io = require('socket.io')(http);
 
 const bodyParser = require('body-parser');
 
@@ -17,32 +17,59 @@ const db = mongoose.createConnection(dbUri, dbOptions);
 
 const User = require('./models/user')(db);
 
-// -------------------------------------------------
-//Seed
+// -------------------------
+// Seed
 const seed = () => {
-  // User.find({}).remove().then(() => {
     const users = [{
-      email: 'alice@example.com',
-      displayName: 'Alice',
-      password: '123123',
+        email: 'alice@example.com',
+        displayName: 'Alice',
+        password: '123123',
+        scores: {},
     }, {
-      email: 'bob@example.com',
-      displayName: 'Bob',
-      password: '321321',
+        email: 'bob@example.com',
+        displayName: 'Bob',
+        password: '321321',
+        scores: {},
+    }, {
+        email: 'christine@example.com',
+        displayName: 'Christine',
+        password: '321321',
+        scores: {},
+    }, {
+        email: 'dylan@example.com',
+        displayName: 'Dylan',
+        password: '321321',
+        scores: {},
     }];
 
-    User.create(users, (err, users_) => {
-      // console.log(`MONGODB SEED: ${users.length} Users created.`);
-      console.log(`MONGODB SEED: ${users_.length} Users created.`);
+    User.deleteMany({}).then(() => {
+        User.create(users, (err, users_) => {
+            console.log(`MONGODB SEED: ${users_.length} Users created.`);
+
+            const [ alice, bob, christine, dylan ] = users_;
+
+            alice.scores = {
+                [ dylan._id ]: 1,
+            };
+
+            bob.scores = {
+                [ christine._id ]: 1,
+            };
+
+            christine.scores = {
+                [ dylan._id ]: 1,
+            };
+
+            alice.save();
+            bob.save();
+            christine.save();
+        });
     });
 };
 db.on('open', () => {
     seed();
 });
-
-// -------------------------------------------------
-
-// -------------------------------------------------
+// -------------------------
 
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
@@ -136,17 +163,17 @@ app.use((err, req, res, next) => {
 // -------------------------
 // Socket.io integration
 
-// let messages = [];
-//
-// io.on('connection', function(socket) {
-//
-//     socket.emit('getMsgs', messages);
-//
-//     socket.on('chatMsg', msg => {
-//         messages = [].concat(messages, msg);
-//         socket.broadcast.emit('newChatMsg', msg);
-//     });
-//
-// });
+let messages = [];
+
+io.on('connection', function(socket) {
+
+    socket.emit('getMsgs', messages);
+
+    socket.on('chatMsg', msg => {
+        messages = [].concat(messages, msg);
+        socket.broadcast.emit('newChatMsg', msg);
+    });
+
+});
 
 http.listen(3000);
